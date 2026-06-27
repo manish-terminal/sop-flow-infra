@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import * as cdk from 'aws-cdk-lib/core';
+import * as cdk from 'aws-cdk-lib';
 import { TablesStack } from '../lib/tables-stack';
 import { StorageStack } from '../lib/storage-stack';
 import { ApiStack } from '../lib/api-stack';
@@ -8,7 +8,7 @@ import { EventsStack } from '../lib/events-stack';
 const app = new cdk.App();
 
 // Create Tables Stack first as database dependencies
-new TablesStack(app, 'TablesStack', {
+const tablesStack = new TablesStack(app, 'TablesStack', {
   /* env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }, */
 });
 
@@ -19,6 +19,9 @@ new StorageStack(app, 'StorageStack', {
 
 // Create API Stack (Lambdas + API Gateway)
 new ApiStack(app, 'ApiStack', {
+  coreTable: tablesStack.coreTable,
+  authTable: tablesStack.authTable,
+  notifTable: tablesStack.notifTable,
   /* env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }, */
 });
 
@@ -26,3 +29,4 @@ new ApiStack(app, 'ApiStack', {
 new EventsStack(app, 'EventsStack', {
   /* env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }, */
 });
+
