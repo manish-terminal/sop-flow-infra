@@ -13,7 +13,7 @@ const tablesStack = new TablesStack(app, 'TablesStack', {
 });
 
 // Create Storage Stack (S3)
-new StorageStack(app, 'StorageStack', {
+const storageStack = new StorageStack(app, 'StorageStack', {
   /* env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }, */
 });
 
@@ -22,6 +22,7 @@ new ApiStack(app, 'ApiStack', {
   coreTable: tablesStack.coreTable,
   authTable: tablesStack.authTable,
   notifTable: tablesStack.notifTable,
+  proofsBucket: storageStack.proofsBucket,
   /* env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }, */
 });
 

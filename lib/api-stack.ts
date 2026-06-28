@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { GoFunction } from './go-function';
 
@@ -9,6 +10,7 @@ export interface ApiStackProps extends cdk.StackProps {
   coreTable: dynamodb.ITable;
   authTable: dynamodb.ITable;
   notifTable: dynamodb.ITable;
+  proofsBucket: s3.IBucket;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -25,6 +27,7 @@ export class ApiStack extends cdk.Stack {
         CORE_TABLE_NAME: props.coreTable.tableName,
         AUTH_TABLE_NAME: props.authTable.tableName,
         NOTIF_TABLE_NAME: props.notifTable.tableName,
+        S3_BUCKET: props.proofsBucket.bucketName,
         JWT_SECRET: jwtSecret,
         TWILIO_ACCOUNT_SID: 'ACmock',
         TWILIO_AUTH_TOKEN: 'mocktoken',
@@ -38,6 +41,7 @@ export class ApiStack extends cdk.Stack {
     props.coreTable.grantReadWriteData(apiLambda);
     props.authTable.grantReadWriteData(apiLambda);
     props.notifTable.grantReadWriteData(apiLambda);
+    props.proofsBucket.grantReadWrite(apiLambda);
 
     // Create API Gateway REST API with proxy routing
     const api = new apigateway.RestApi(this, 'SopFlowApi', {
