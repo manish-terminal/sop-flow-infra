@@ -14,6 +14,16 @@ const tablesStack = new TablesStack(app, 'TablesStack', {
 
 // Create Storage Stack (S3)
 const storageStack = new StorageStack(app, 'StorageStack', {
+  coreTable: tablesStack.coreTable,
+  notifTable: tablesStack.notifTable,
+  /* env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }, */
+});
+
+// Create Events Stack (EventBridge + Event Consumers)
+const eventsStack = new EventsStack(app, 'EventsStack', {
+  coreTable: tablesStack.coreTable,
+  notifTable: tablesStack.notifTable,
+  eventBus: storageStack.eventBus,
   /* env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }, */
 });
 
@@ -23,11 +33,7 @@ new ApiStack(app, 'ApiStack', {
   authTable: tablesStack.authTable,
   notifTable: tablesStack.notifTable,
   proofsBucket: storageStack.proofsBucket,
-  /* env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }, */
-});
-
-// Create Events Stack (EventBridge)
-new EventsStack(app, 'EventsStack', {
+  eventBus: storageStack.eventBus,
   /* env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION }, */
 });
 
