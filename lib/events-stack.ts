@@ -52,6 +52,60 @@ export class EventsStack extends cdk.Stack {
 
     taskEventsRule.addTarget(new targets.LambdaFunction(healthScoreLambda));
     taskEventsRule.addTarget(new targets.LambdaFunction(notificationDispatchLambda));
+
+    // 4. Task Generator Lambda & Schedule
+    const taskGeneratorLambda = new GoFunction(this, 'TaskGeneratorLambda', {
+      entry: 'cmd/task-generator',
+      environment: {
+        CORE_TABLE_NAME: props.coreTable.tableName,
+        NOTIF_TABLE_NAME: props.notifTable.tableName,
+      },
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+    });
+    props.coreTable.grantReadWriteData(taskGeneratorLambda);
+
+    const taskGeneratorRule = new events.Rule(this, 'TaskGeneratorRule', {
+      schedule: events.Schedule.cron({ minute: '0' }),
+    });
+    taskGeneratorRule.addTarget(new targets.LambdaFunction(taskGeneratorLambda));
+
+    // 5. Task Sweeper Lambda & Schedule
+    const taskSweeperLambda = new GoFunction(this, 'TaskSweeperLambda', {
+      entry: 'cmd/task-sweeper',
+      environment: {
+        CORE_TABLE_NAME: props.coreTable.tableName,
+        NOTIF_TABLE_NAME: props.notifTable.tableName,
+        EVENT_BUS_NAME: props.eventBus.eventBusName,
+      },
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+    });
+    props.coreTable.grantReadWriteData(taskSweeperLambda);
+    props.eventBus.grantPutEventsTo(taskSweeperLambda);
+
+    const taskSweeperRule = new events.Rule(this, 'TaskSweeperRule', {
+      schedule: events.Schedule.cron({ minute: '0' }),
+    });
+    taskSweeperRule.addTarget(new targets.LambdaFunction(taskSweeperLambda));
+
+    // 6. Daily Summary Lambda & Schedule
+    const dailySummaryLambda = new GoFunction(this, 'DailySummaryLambda', {
+      entry: 'cmd/daily-summary',
+      environment: {
+        CORE_TABLE_NAME: props.coreTable.tableName,
+        NOTIF_TABLE_NAME: props.notifTable.tableName,
+      },
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
+    });
+    props.coreTable.grantReadWriteData(dailySummaryLambda);
+    props.notifTable.grantReadWriteData(dailySummaryLambda);
+
+    const dailySummaryRule = new events.Rule(this, 'DailySummaryRule', {
+      schedule: events.Schedule.cron({ minute: '0' }),
+    });
+    dailySummaryRule.addTarget(new targets.LambdaFunction(dailySummaryLambda));
   }
 }
 
